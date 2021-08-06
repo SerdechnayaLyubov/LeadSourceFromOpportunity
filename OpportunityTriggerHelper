@@ -1,0 +1,26 @@
+public class OpportunityTriggerHelper {
+
+      public static void updateFromLeadSource(Map<Id, Opportunity> mapOpportunityOld, Map<Id, Opportunity> mapOpportunityNew) {
+          Map<Id, Opportunity> opportunities = mapOpportunityNew;     
+          List<Id> accIds = new List<Id>();          
+          for (Opportunity oppo : opportunities.values()) {
+              accIds.add(oppo.AccountId);              
+          }         
+          
+          List <Account> accounts = new List <Account> ([SELECT Id, AccountSource FROM Account WHERE Id IN : accIds]);
+          list <Contact> contacts = new List <Contact> ([SELECT Id, AccountId, LeadSource FROM Contact WHERE Id IN : accIds]);          
+          for(opportunity opp : opportunities.values()){
+              if(opp.StageName == 'Closed Won'){
+                  for (Account a : accounts){
+                      a.AccountSource = opp.LeadSource;                      
+                  }
+                  for (Contact c : contacts) {
+                      c.LeadSource = opp.LeadSource;
+                  }             
+              }
+          }          
+          update accounts;
+          update contacts;
+
+      }
+}
