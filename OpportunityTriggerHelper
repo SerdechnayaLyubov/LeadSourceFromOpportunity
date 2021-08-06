@@ -1,8 +1,8 @@
 public class OpportunityTriggerHelper {
 
     public static void updateFromLeadSource(Map<Id, Opportunity> mapOpportunityOld, Map<Id, Opportunity> mapOpportunityNew) {
-        for (Id ids : mapOpportunityNew.keyset()) {
-              if((mapOpportunityOld.get(ids).StageName) != (mapOpportunityNew.get(ids).StageName)) {
+        //for (Id ids : mapOpportunityNew.keyset()) {
+              //if((mapOpportunityOld.get(ids).StageName) != (mapOpportunityNew.get(ids).StageName)) {
                   Map<Id, Opportunity> opportunities = mapOpportunityNew;     
                   List<Id> accIds = new List<Id>();          
                   for (Opportunity oppo : opportunities.values()) {
@@ -22,7 +22,7 @@ public class OpportunityTriggerHelper {
                   }          
                   update accounts;
                   update contacts;
-              }
-        }
+             // }
+        //}
     }                
 }
