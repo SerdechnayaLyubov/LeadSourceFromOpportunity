@@ -1,7 +1,24 @@
-trigger OpportunityTrigger on Opportunity (after update) {
-    
-       if (Trigger.isAfter && Trigger.isUpdate) {
-           OpportunityTriggerHelper.updateFromLeadSource(Trigger.oldMap, Trigger.newMap);
-       }
+/*******************************************
+* Copyright (c) 2021 Coherent Solutions
+*******************************************/
 
+trigger OpportunityTrigger on Opportunity (
+        before insert, before update, before delete,
+        after insert, after update, after delete, after undelete )
+{
+    OpportunityTriggerHelper helper = new OpportunityTriggerHelper();
+    if (Trigger.isBefore) {
+        if (Trigger.isInsert) {}
+        if (Trigger.isUpdate) {}
+        if (Trigger.isDelete) {}
+    }
+    if (Trigger.isAfter) {
+        if (Trigger.isInsert) {}
+        if (Trigger.isUpdate) {
+            helper.handleAfterUpdate(trigger.new, trigger.oldMap);
+            helper.updateFromLeadSource(Trigger.oldMap, Trigger.newMap);
+        }
+        if (Trigger.isDelete) {}
+        if (Trigger.isUndelete) {}
+    }
 }
