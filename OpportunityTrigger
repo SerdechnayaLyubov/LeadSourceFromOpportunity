@@ -8,12 +8,16 @@ trigger OpportunityTrigger on Opportunity (
 {
     OpportunityTriggerHelper helper = new OpportunityTriggerHelper();
     if (Trigger.isBefore) {
-        if (Trigger.isInsert) {}
+        if (Trigger.isInsert) {
+            helper.updateLeadSourceFromFirstOpportunity(trigger.new);   
+        }
         if (Trigger.isUpdate) {}
         if (Trigger.isDelete) {}
     }
     if (Trigger.isAfter) {
-        if (Trigger.isInsert) {}
+        if (Trigger.isInsert) {
+                      
+        }
         if (Trigger.isUpdate) {
             helper.handleAfterUpdate(trigger.new, trigger.oldMap);
             helper.updateFromLeadSource(Trigger.oldMap, Trigger.newMap);
