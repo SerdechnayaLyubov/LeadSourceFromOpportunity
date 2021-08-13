@@ -19,15 +19,8 @@ public with sharing class OpportunityTriggerHelper {
         }
     }
 
-
-
-    //////////////// Lyuba's new method //////////////////
-    public void updateFromLeadSource(Map<Id, Opportunity> mapOpportunityOld, Map<Id, Opportunity> mapOpportunityNew) {
-        List<Id> accIds = new List<Id>();          
-        for (Opportunity oppo : mapOpportunityNew.values()) {
-            accIds.add(oppo.AccountId);              
-        }  
-        
+       public void updateFromLeadSource(Map<Id, Opportunity> mapOpportunityOld, Map<Id, Opportunity> mapOpportunityNew) {
+        List<Id> accIds = new List<Id>();        
         for (Opportunity opp: mapOpportunityNew.values()) {
             Opportunity oldOpp = mapOpportunityOld.get(opp.Id);
             if ((opp.StageName != oldOpp.StageName && opp.StageName == 'Won') || (oldOpp.StageName == 'Won')) {       
@@ -37,19 +30,68 @@ public with sharing class OpportunityTriggerHelper {
         List <Account> accounts = new List <Account> ([SELECT Id, AccountSource FROM Account WHERE Id IN : accIds]);
         List <Contact> contacts = new List <Contact> ([SELECT Id, AccountId, LeadSource FROM Contact WHERE AccountId IN : accIds]);
         for (opportunity opp : mapOpportunityNew.values()) {  
-            for (Account a : accounts) {
-                a.AccountSource = opp.LeadSource;                      
+           for (Account a : accounts) {
+				if (a.Id == opp.AccountId) {
+					a.AccountSource = opp.LeadSource;
+					for (Contact c : contacts) {
+						if (c.AccountId == a.Id) {
+							c.LeadSource = opp.LeadSource;
+						}
+					}  
+				}
             }
-            for (Contact c : contacts) {
-                c.LeadSource = opp.LeadSource;
-            }                               
-        }          
-        update accounts;
-        update contacts;
+        }
+        try {        
+            update accounts;            
+        }
+        catch (DMLException  accountException) {
+            System.debug('Account update exception:  ' + accountException);        
+        }
+        try {        
+            update contacts;            
+        }
+        catch (DMLException  contactException) {
+            System.debug('Contact update exception:  ' + contactException);          
+        }
 
     }
-    //////////////// end of Lyuba's new method //////////////////
+   
+    
+     public void updateLeadSourceFromFirstOpportunity (List <Opportunity> listOpportunityNew) {        
+        Set<Id> opportunityAccountIds = new Set<Id>();
+        Map<Id, List<Opportunity>> accountIdToOpportunities = new Map<Id, List<Opportunity>>();
 
+        for (Opportunity item : listOpportunityNew) {
+            if (item.AccountId != null) {
+                opportunityAccountIds.add(item.AccountId);
+            }
+        }
+
+        List<Opportunity> opportunities = [
+                SELECT Id, LeadSource, AccountId
+                FROM Opportunity
+                WHERE AccountId IN: opportunityAccountIds
+                ORDER BY CreatedDate
+        ];
+
+        for (Opportunity item : opportunities) {
+            if (accountIdToOpportunities.containsKey(item.AccountId)) {
+                accountIdToOpportunities.get(item.AccountId).add(item);
+            } else {
+                List<Opportunity> opportunitiesWithTheSameAccount = new List<Opportunity>();
+                opportunitiesWithTheSameAccount.add(item);
+                accountIdToOpportunities.put(item.AccountId, opportunitiesWithTheSameAccount);
+            }
+        }
+
+        for (Id accountId : accountIdToOpportunities.keySet()) {
+            for (Opportunity item : listOpportunityNew) {
+                if (accountId == item.AccountId) {
+                    item.LeadSource = accountIdToOpportunities.get(item.AccountId).get(0).LeadSource;
+                }
+            }
+        }
+    }
 
 
 
